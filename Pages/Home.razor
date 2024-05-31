@@ -1,0 +1,76 @@
+﻿@page "/"
+@using Top10Streams.Data.TopList
+@inject Data.ListService ListService
+@inject NavigationManager NavMgr
+
+<PageTitle>Top 10 Stream Deck</PageTitle>
+
+@if (AvailableLists == null)
+{
+    <MudPaper Class="align-content-space-around">
+        <MudText>Loading Available Lists...</MudText>
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+    </MudPaper>
+}
+else
+{
+    <MudItem xs="12"></MudItem>
+    <MudItem xs="4"></MudItem>
+    <MudItem xs="4">
+        <MudPaper Class="align-content-space-around pa-3" MinWidth="40%">
+            <MudStack Spacing="3">
+                <MudSelect T=string @bind-Value=@Code Label="Available Lists" AnchorOrigin="Origin.BottomCenter">
+                    @foreach (var list in AvailableLists)
+                    {
+                        <MudSelectItem Value=@list.Code>@list.Name</MudSelectItem>
+                    }
+                </MudSelect>
+                <MudStack Row Justify="@Justify.SpaceBetween">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="GoToHost">Host</MudButton>
+                    @if(ErrorMessage != string.Empty)
+                    {
+                        <MudAlert Severity="Severity.Error" Variant="Variant.Outlined" Dense="true" Class="my-2">@ErrorMessage</MudAlert>
+                    }
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="GoToBuild">Make Your List</MudButton>
+                </MudStack>
+            </MudStack>
+        </MudPaper>
+    </MudItem>
+    <MudItem xs="4"></MudItem>
+    <MudItem xs="12"></MudItem>
+}
+
+@code
+{
+    public string Code { get; set; } = "";
+    protected List<AvailableTopList>? AvailableLists;
+    protected string ErrorMessage { get; set; } = string.Empty;
+    protected override async Task OnInitializedAsync()
+    {
+        AvailableLists = await ListService.GetAvailableLists();
+    }
+
+    protected void GoToHost()
+    {
+        if(Code == string.Empty)
+        {
+            ErrorMessage = "You must choose a List to start.";
+        }
+        else
+        {
+            NavMgr.NavigateTo($"/host/{Code}");
+        }
+    }
+
+    protected void GoToBuild()
+    {
+        if (Code == string.Empty)
+        {
+            ErrorMessage = "You must choose a List to start.";
+        }
+        else
+        {
+            NavMgr.NavigateTo($"/build/{Code}");
+        }
+    }
+}

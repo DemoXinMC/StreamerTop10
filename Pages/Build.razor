@@ -1,0 +1,254 @@
+﻿@page "/build/{ListCode}"
+@using MudBlazor.Utilities
+@using Top10Streams.Data.TopList
+@inject Data.ListService ListService
+@inject NavigationManager NavMgr
+@inject ClipboardService Clipboard
+@inject ISnackbar Snackbar
+
+@if(ListCode == null)
+{
+    NavMgr.NavigateTo("/");
+    return;
+}
+
+@if(LoadedList == null)
+{
+    <MudItem xs="3"></MudItem>
+    <MudItem xs="6">
+        <MudPaper Class="align-content-space-around">
+            <MudText>Loading List...</MudText>
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+        </MudPaper>
+    </MudItem>
+    <MudItem xs="3"></MudItem>
+}
+else
+{
+    <MudItem xs="12" Class="pa-2">
+        <MudPaper Elevation="4" Class="pa-3">
+            <MudText Typo="@Typo.h2">Create Your Top 10: @LoadedList.Name</MudText>
+            <MudStack Row Justify="@Justify.SpaceBetween" Spacing="0" Class="mt-1">
+                <MudPaper Elevation="0" Width="55%">
+                    <MudTextField @bind-Value=@Username Label="Name" ShrinkLabel Variant="Variant.Outlined" RequiredError="Required"></MudTextField>
+                </MudPaper>
+                <MudPaper Elevation="0" Width="40%">
+                    <MudStack Row Spacing="0">
+                         <MudTextField @bind-Value=@PackedValue Label="Encoded List" ReadOnly ShrinkLabel Variant="Variant.Outlined" Adornment="@Adornment.Start" AdornmentIcon="@Icons.Material.Filled.CopyAll" OnAdornmentClick="(() => { CopyPackedToClipboard(); })" AdornmentColor="@Color.Primary" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Refresh" Color="@Color.Primary" OnClick="() => UpdatePackedValue()" />
+                    </MudStack>
+                </MudPaper>
+            </MudStack>
+        </MudPaper>
+    </MudItem>
+    <MudItem xs="4" Class="pa-2">
+        <MudPaper Elevation="4" Class="pa-2">
+            <MudSimpleTable Class="pa-2">
+                <thead>
+                    <tr class="pa-2">
+                        <td colspan="4"><MudText Typo="@Typo.h3">Ranking</MudText></td>
+                    </tr>
+                </thead>
+                <tr>
+                    <td width="10%"></td>
+                    <td width="20%"></td>
+                    <td width="60%"></td>
+                    <td width="10%"></td>
+                </tr>
+                @for(var i = 0; i < MaxRanks; i++)
+                {
+                    var rank = i;
+                    var rankedItem = Ranked.ElementAtOrDefault(rank);
+                    @if(rankedItem != null)
+                    {
+                        <tr class="pa-2">
+                            <td><MudText Typo="@Typo.h6">@(rank + 1)</MudText></td>
+                            <td>
+                                <MudStack Row Justify="@Justify.FlexStart">
+                                    <MudIconButton Class="@(rankedItem != Ranked.First() ? "" : "invisible")" Icon="@Icons.Material.Filled.ArrowUpward" Color="Color.Success" OnClick="() => IncreaseRank(rankedItem)" />
+                                    <MudIconButton Class="@(rankedItem != Ranked.Last() ? "" : "invisible")" Icon="@Icons.Material.Filled.ArrowDownward" Color="Color.Warning" OnClick="() => DecreaseRank(rankedItem)" />
+                                </MudStack>
+                            </td>
+                            <td>
+                                <MudText Typo="@Typo.body1">@rankedItem.Name</MudText>
+                            </td>
+                            <td>
+                                <MudIconButton Icon="@Icons.Material.Filled.Close" Color="Color.Error" OnClick="() => RemoveFromRanking(rankedItem)" />
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        <tr>
+                            <td><MudText Typo="@Typo.h6">@(rank + 1)</MudText></td>
+                            <td>
+                                <MudStack Row Justify="@Justify.FlexStart">
+                                     <MudIconButton Class="invisible" Icon="@Icons.Material.Filled.ArrowUpward" Color="Color.Success" />
+                                     <MudIconButton Class="invisible" Icon="@Icons.Material.Filled.ArrowDownward" Color="Color.Warning" />
+                                </MudStack>
+                            </td>
+                            <td>
+                                <MudText Typo="@Typo.body1"><MudSpacer /></MudText>
+                            </td>
+                            <td>
+                                <MudIconButton Class="invisible" Icon="@Icons.Material.Filled.Close" Color="Color.Error" />
+                            </td>
+                        </tr>
+                    }
+                }
+            </MudSimpleTable>
+        </MudPaper>
+    </MudItem>
+    <MudItem xs="8" Class="pa-2 object-fill">
+        <MudPaper Elevation="4" Class="pa-2">
+            <MudStack Row Wrap="@Wrap.Wrap" AlignItems="@AlignItems.Center" Spacing="1">
+            @foreach (var item in TopItems)
+            {
+                @if (item.Ranked == false)
+                {
+                    <MudButton Color="@Color.Primary" Variant="@Variant.Filled" OnClick="() => AddToRanking(item)">
+                        <MudIcon Icon="@Icons.Material.Filled.Add" />@item.Name
+                    </MudButton>
+                }
+            }
+            </MudStack>
+        </MudPaper>
+    </MudItem>
+}
+
+@code
+{
+    [Parameter]
+    public string? ListCode { get; set; }
+
+    protected TopList? LoadedList { get; set; }
+
+    protected List<TopItem> Ranked = [];
+    protected List<TopItem> TopItems = [];
+
+    protected string? Username { get; set; }
+    protected string? PackedValue { get; set; }
+
+    const int MaxRanks = 10;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (ListCode == null)
+        {
+            NavMgr.NavigateTo("/");
+            return;
+        }
+
+        LoadedList = await ListService.GetTopList(ListCode);
+
+        foreach(var item in LoadedList.GetItems())
+        {
+            TopItems.Add(new TopItem(item));
+        }
+    }
+
+    protected class TopItem
+    {
+        protected TopListItem Item;
+
+        public string Name { get => Item.Name == null ? "" : Item.Name; }
+        public int Id { get => Item.Id; }
+        public bool Ranked { get; set; } = false;
+        public int Rank { get; set; } = 0;
+
+        public TopItem(TopListItem item)
+        {
+            Item = item;
+        }
+    }
+
+    protected void AddToRanking(TopItem item)
+    {
+        item.Ranked = true;
+        item.Rank = Ranked.Count;
+        Ranked.Add(item);
+        UpdateLists();
+    }
+
+    protected void RemoveFromRanking(TopItem item)
+    {
+        var removalRank = item.Rank;
+        item.Ranked = false;
+        item.Rank = 0;
+        Ranked.Remove(item);
+        foreach (var update in Ranked)
+        {
+            if(update.Rank > removalRank)
+                update.Rank = update.Rank - 1;
+        }
+        UpdateLists();
+    }
+
+    protected void IncreaseRank(TopItem item)
+    {
+        if(!Ranked.Contains(item))
+            return;
+
+        var newRank = item.Rank - 1;
+        if (newRank < 0 || newRank > Ranked.Count - 1)
+            throw new Exception("Buttons exist for a reason.");
+        Ranked[newRank].Rank = item.Rank;
+        item.Rank = newRank;
+        UpdateLists();
+    }
+
+    protected void DecreaseRank(TopItem item)
+    {
+        if (!Ranked.Contains(item))
+            return;
+
+        var newRank = item.Rank + 1;
+        if (newRank < 0 || newRank > Ranked.Count - 1)
+            throw new Exception("Buttons exist for a reason.");
+        Ranked[newRank].Rank = item.Rank;
+        item.Rank = newRank;
+        UpdateLists();
+    }
+
+    protected void UpdateLists()
+    {
+        if(Ranked.Count > MaxRanks)
+        {
+            var removing = Ranked.GetRange(MaxRanks, Ranked.Count - MaxRanks);
+            foreach(var removal in removing)
+            {
+                removal.Rank = 0;
+                removal.Ranked = false;
+            }
+
+            Ranked.RemoveRange(MaxRanks, Ranked.Count - MaxRanks);
+        }
+
+        Ranked.Sort((a, b) => { return (a.Rank > b.Rank ? 1 : -1); });
+        PackedValue = string.Empty;
+    }
+
+    protected void UpdatePackedValue()
+    {
+        PackedValue = Data.Transmit.EncodeString($"{Username}:{GetPackedList()}");
+        Snackbar.Add("Generated Top 10 Code.", Severity.Info);
+    }
+
+    protected void CopyPackedToClipboard()
+    {
+        UpdatePackedValue();
+        Clipboard.WriteTextAsync(PackedValue);
+        Snackbar.Add("Top 10 Code copied to Clipboard.", Severity.Success);
+    }
+
+    protected string GetPackedList()
+    {
+        UpdateLists();
+        List<int> ids = [];
+        foreach(var item in Ranked)
+        {
+            ids.Add(item.Id);
+        }
+        return Data.Transmit.EncodeIntList(ids);
+    }
+}

@@ -1,0 +1,333 @@
+﻿@page "/host/{ListCode}"
+@using Top10Streams.Data.TopList
+@inject HttpClient HttpClient
+@inject Data.ListService ListService
+@inject NavigationManager NavMgr
+@inject ClipboardService Clipboard
+@inject ISnackbar Snackbar
+
+@if(ListCode == null)
+{
+    NavMgr.NavigateTo("/");
+    return;
+}
+
+@if (LoadedList == null)
+{
+    <MudItem xs="3"></MudItem>
+    <MudItem xs="6">
+        <MudPaper Class="align-content-space-around">
+            <MudText>Loading List...</MudText>
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+        </MudPaper>
+    </MudItem>
+    <MudItem xs="3"></MudItem>
+}
+else
+{
+    <MudItem xs="7" Class="pa-2">
+        <MudPaper Width="100%" Height="100%" Outlined Class="pa-2">
+            <MudStack>
+                <MudPaper Width="100%" Elevation="0">
+                    <MudStack Row Justify="@Justify.SpaceBetween">
+                        @if(IsEditingTitle)
+                        {
+                            <MudTextField @bind-Value=CustomPanelName ShrinkLabel Label="Change Stream Title" />
+                        }
+                        else
+                        {
+                            @if (CustomPanelName != null)
+                            {
+                                <MudText Typo="@Typo.h3">@CustomPanelName</MudText>
+                            }
+                            else
+                            {
+                                <MudText Typo="@Typo.h3">@LoadedList.Name</MudText>
+                            }
+                        }
+                        <MudToggleIconButton @bind-Toggled=IsEditingTitle Icon="@Icons.Material.Filled.Edit" Color="@Color.Primary" ToggledIcon="@Icons.Material.Filled.Check" ToggledColor="@Color.Success" />
+                    </MudStack>
+                </MudPaper>
+                <MudSpacer />
+                <MudPaper Class="px-8 py-1" Elevation="0">
+                @if(BuildLink != null)
+                {
+                    <MudStack Row AlignItems="@AlignItems.Center">
+                        <MudLink Href="@BuildLink">List Code: @ListCode</MudLink>
+                        <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Filled.CopyAll" OnClick="(() => { CopyLinkToClipboard(); })" />
+                    </MudStack>
+                }
+                </MudPaper>
+            </MudStack>
+        </MudPaper>
+    </MudItem>
+    <MudItem xs="5" Class="pa-2">
+        <MudPaper Width="100%" Height="100%" Outlined Class="pa-2">
+            <MudSpacer />
+            <MudStack Row Justify="@Justify.SpaceBetween">
+                <MudTextField @bind-Value=@UserInput Label="Add A User" ShrinkLabel FullWidth Variant="@Variant.Outlined" />
+                <MudIconButton Icon="@Icons.Material.Filled.Add" OnClick="@AddUser" />
+            </MudStack>
+        </MudPaper>
+    </MudItem>
+    <MudItem xs="2">
+        <MudPaper Width="100%">
+            @if(CurrentPoints != null && CurrentPoints.Count > 0)
+            {
+                var i = 0;
+                <MudList>
+                    @foreach (var item in CurrentPoints)
+                    {
+                        var rank = i++;
+                        <MudListItem>@($"{rank}. {@item.Key.Name} ({@item.Value} Points)")</MudListItem>
+                    }
+                </MudList>
+            }
+        </MudPaper>
+    </MudItem>
+    <MudItem xs="6" Class="pa-2">
+        <MudPaper Outlined Elevation="4" Class="pa-2" Width="100%">
+            <MudSimpleTable>
+                <thead>
+                    <tr>
+                        <th width="10%"><MudText Typo="@Typo.h5">Rank</MudText></th>
+                        <th width="5%"><MudIcon Icon="@Icons.Material.Filled.RemoveRedEye" Size="@Size.Small" /></th>
+                        @if(Rankings != null && Rankings.Count > 0)
+                        {
+                            @foreach (var user in Rankings)
+                            {
+                                <th width="@((int)(85/Rankings.Count))%">
+                                    <MudText Typo="@Typo.h5">@user.Name</MudText>
+                                </th>
+                            }
+                        }
+                        else
+                        {
+                            <th width="85%"></th>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                @for (var i = 0; i < MaxRanks; i++)
+                {
+                    int ranking = i;
+                    <tr>
+                        <td><MudText Typo="@Typo.h5">@(ranking + 1)</MudText></td>
+                        @if(RevealedRanks != null && RevealedRanks.Contains(ranking))
+                        {
+                            <td><MudIconButton Icon="@Icons.Material.Filled.Block" Color="@Color.Error" Size="@Size.Small" OnClick="(() => { Hide(ranking); })" /></td>
+                        }
+                        else
+                        {
+                            <td><MudIconButton Icon="@Icons.Material.Filled.RemoveRedEye" Size="@Size.Small" OnClick="(() => { Reveal(ranking); })" /></td>
+                        }
+                        @if (Rankings != null && Rankings.Count > 0)
+                        {
+                            @foreach (var user in Rankings)
+                            {
+                                @if(RevealedRanks != null && RevealedRanks.Contains(ranking))
+                                {
+                                    var userRank = user.GetEntry(ranking);
+                                    @if (userRank != null)
+                                    {
+                                        <td>
+                                        @if (BestRanking != null && BestRanking.ContainsKey(userRank) && BestRanking[userRank] == ranking)
+                                        {
+                                            <MudBadge Icon="@Icons.Material.Filled.Stars" Color="@Color.Success" Origin="@Origin.TopLeft">
+                                                <MudPaper Elevation="0">
+                                                    <MudText Typo="@Typo.body1">@userRank.Name</MudText>
+                                                </MudPaper>
+                                            </MudBadge>
+                                        }
+                                        else
+                                        {
+                                            <MudPaper Elevation="0">
+                                                <MudText Typo="@Typo.body1">@userRank.Name</MudText>
+                                            </MudPaper>
+                                        }
+                                        </td>
+                                    }
+                                    
+                                }
+                                else
+                                {
+                                    <td><MudSkeleton SkeletonType="@SkeletonType.Rectangle" Animation="@Animation.Wave" /></td>
+                                }                                            
+                            }
+                        }
+                        else
+                        {
+                            <td></td>
+                        }
+                    </tr>
+                }
+                </tbody>
+            </MudSimpleTable>
+        </MudPaper>
+    </MudItem>
+    <MudItem xs="4">
+        
+    </MudItem>
+}
+
+@code
+{
+    [Parameter]
+    public string? ListCode { get; set; }
+
+    public string? BuildLink { get => HttpClient.BaseAddress == null ? null : $"{HttpClient.BaseAddress.ToString()}build/{ListCode}"; }
+
+    public string? CustomPanelName { get; set; }
+    public bool IsEditingTitle { get; set; } = false;
+
+    const int MaxRanks = 10;
+
+    protected TopList? LoadedList { get; set; }
+    protected List<UserRanking>? Rankings { get; set; }
+    protected Dictionary<TopListItem, int>? BestRanking { get; set; }
+    protected Dictionary<TopListItem, int>? CurrentPoints { get; set; }
+    protected List<int>? RevealedRanks { get; set; }
+
+    protected string? UserInput { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (ListCode == null)
+        {
+            NavMgr.NavigateTo("/");
+            return;
+        }
+
+        Rankings = [];
+        BestRanking = [];
+        CurrentPoints = [];
+        RevealedRanks = [];
+        LoadedList = await ListService.GetTopList(ListCode);
+    }
+
+    protected void AddUser()
+    {
+        Rankings ??= [];
+        if (UserInput == null || UserInput.Length <= 0)
+        {
+            Snackbar.Add("You must supply a Top 10 Code to add a new User.", Severity.Error);
+            return;
+        }
+
+        if (LoadedList == null)
+            throw new Exception("Can't load a User without a List.");
+
+        try
+        {
+            var newUser = new UserRanking(UserInput, LoadedList);
+            Rankings.Add(newUser);
+            Snackbar.Add($"Add User: {newUser.Name}", Severity.Success);
+        }
+        catch(Exception e)
+        {
+            Snackbar.Add($"Couldn't add new user: {e.Message}");
+        }
+
+        UserInput = string.Empty;
+        RecalculateBestStandings();
+        RecalculateCurrentPoints();
+    }
+
+    protected void Reveal(int rank)
+    {
+        RevealedRanks ??= [];
+        if (!RevealedRanks.Contains(rank)) RevealedRanks.Add(rank);
+        RecalculateCurrentPoints();
+    }
+
+    protected void Hide(int rank)
+    {
+        RevealedRanks ??= [];
+        if (RevealedRanks.Contains(rank)) RevealedRanks.Remove(rank);
+        RecalculateCurrentPoints();
+    }
+
+    protected void CopyLinkToClipboard()
+    {
+        Clipboard.WriteTextAsync(BuildLink);
+        Snackbar.Add("Copied to Clipboard.", Severity.Info);
+    }
+
+    protected void RecalculateCurrentPoints()
+    {
+        Rankings ??= [];
+        CurrentPoints ??= [];
+        RevealedRanks ??= [];
+        Dictionary<TopListItem, int> calculatedPoints = [];
+        for (var i = 0; i < MaxRanks; i++)
+        {
+            if (!RevealedRanks.Contains(i))
+                continue;
+
+            foreach (var user in Rankings)
+            {
+                var entry = user.GetEntry(i);
+                if (entry == null)
+                    continue;
+
+                if (!calculatedPoints.ContainsKey(entry))
+                    calculatedPoints.Add(entry, 0);
+
+                calculatedPoints[entry] = calculatedPoints[entry] + (MaxRanks - i);
+            }
+        }
+
+        CurrentPoints.Clear();
+        var sorted = calculatedPoints.OrderBy(x => x.Value);
+        foreach (var item in sorted)
+            CurrentPoints.Add(item.Key, item.Value);
+    }
+
+    protected void RecalculateBestStandings()
+    {
+        Rankings ??= [];
+        BestRanking ??= [];
+        BestRanking.Clear();
+        for(var i = 0; i < MaxRanks; i++)
+        {
+            foreach(var user in Rankings)
+            {
+                var entry = user.GetEntry(i);
+                if (entry == null || BestRanking.ContainsKey(entry))
+                    continue;
+                BestRanking.Add(entry, i);
+            }
+        }
+    }
+
+    protected class UserRanking
+    {
+        public string Name { get; protected set; }
+        public List<TopListItem> Rankings { get; protected set; }
+
+        public UserRanking(string encodedString, TopList list)
+        {
+            var decode = Data.Transmit.DecodeString(encodedString);
+            var split = decode.Split(':');
+
+            if (split.Length != 2)
+                throw new Exception("Bad Input String.");
+
+            Name = split[0];
+
+            Rankings = [];
+            var ids = Data.Transmit.DecodeIntList(split[1]);
+            foreach(var id in ids)
+            {
+                Rankings.Add(list.GetItem(id));
+            }
+        }
+
+        public TopListItem? GetEntry(int rank)
+        {
+            if (rank < 0 || rank >= Rankings.Count)
+                return null;
+            return Rankings[rank];
+        }
+    }
+}
