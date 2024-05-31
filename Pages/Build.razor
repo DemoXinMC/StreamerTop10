@@ -1,4 +1,6 @@
-﻿@page "/build/{ListCode}"
+﻿@page "/build"
+@page "/build/{ListCode}"
+@page "/build/{ListCode}/{MaxRanks:int}"
 @using MudBlazor.Utilities
 @using Top10Streams.Data.TopList
 @inject Data.ListService ListService
@@ -121,6 +123,9 @@ else
     [Parameter]
     public string? ListCode { get; set; }
 
+    [Parameter]
+    public int? MaxRanks { get; set; } = 10;
+
     protected TopList? LoadedList { get; set; }
 
     protected List<TopItem> Ranked = [];
@@ -128,8 +133,6 @@ else
 
     protected string? Username { get; set; }
     protected string? PackedValue { get; set; }
-
-    const int MaxRanks = 10;
 
     protected override async Task OnInitializedAsync()
     {
@@ -145,6 +148,13 @@ else
         {
             TopItems.Add(new TopItem(item));
         }
+    }
+
+    public async override Task SetParametersAsync(ParameterView parameters)
+    {
+        await base.SetParametersAsync(parameters);
+        MaxRanks = MaxRanks ?? 10;
+        StateHasChanged();
     }
 
     protected class TopItem
@@ -214,14 +224,14 @@ else
     {
         if(Ranked.Count > MaxRanks)
         {
-            var removing = Ranked.GetRange(MaxRanks, Ranked.Count - MaxRanks);
+            var removing = Ranked.GetRange(MaxRanks.Value, Ranked.Count - MaxRanks.Value);
             foreach(var removal in removing)
             {
                 removal.Rank = 0;
                 removal.Ranked = false;
             }
 
-            Ranked.RemoveRange(MaxRanks, Ranked.Count - MaxRanks);
+            Ranked.RemoveRange(MaxRanks.Value, Ranked.Count - MaxRanks.Value);
         }
 
         Ranked.Sort((a, b) => { return (a.Rank > b.Rank ? 1 : -1); });

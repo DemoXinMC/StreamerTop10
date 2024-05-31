@@ -1,0 +1,158 @@
+[
+  {
+    "id": 1,
+    "name": "Blood"
+  },
+  {
+    "id": 2,
+    "name": "Frost (Death Knight)"
+  },
+  {
+    "id": 3,
+    "name": "Unholy"
+  },
+  {
+    "id": 4,
+    "name": "Havoc"
+  },
+  {
+    "id": 5,
+    "name": "Vengeance"
+  },
+  {
+    "id": 6,
+    "name": "Balance"
+  },
+  {
+    "id": 7,
+    "name": "Feral"
+  },
+  {
+    "id": 8,
+    "name": "Guardian"
+  },
+  {
+    "id": 9,
+    "name": "Restoration (Druid)"
+  },
+  {
+    "id": 10,
+    "name": "Devastation"
+  },
+  {
+    "id": 11,
+    "name": "Preservation"
+  },
+  {
+    "id": 12,
+    "name": "Augmentation"
+  },
+  {
+    "id": 13,
+    "name": "Beast Mastery"
+  },
+  {
+    "id": 14,
+    "name": "Marksmanship"
+  },
+  {
+    "id": 15,
+    "name": "Survival"
+  },
+  {
+    "id": 16,
+    "name": "Arcane"
+  },
+  {
+    "id": 17,
+    "name": "Fire"
+  },
+  {
+    "id": 18,
+    "name": "Frost (Mage)"
+  },
+  {
+    "id": 19,
+    "name": "Brewmaster"
+  },
+  {
+    "id": 20,
+    "name": "Mistweaver"
+  },
+  {
+    "id": 21,
+    "name": "Windwalker"
+  },
+  {
+    "id": 22,
+    "name": "Holy (Paladin)"
+  },
+  {
+    "id": 23,
+    "name": "Protection (Paladin)"
+  },
+  {
+    "id": 24,
+    "name": "Retribution"
+  },
+  {
+    "id": 25,
+    "name": "Discipline"
+  },
+  {
+    "id": 26,
+    "name": "Holy (Priest)"
+  },
+  {
+    "id": 27,
+    "name": "Shadow"
+  },
+  {
+    "id": 28,
+    "name": "Assassination"
+  },
+  {
+    "id": 29,
+    "name": "Outlaw"
+  },
+  {
+    "id": 30,
+    "name": "Subtlety"
+  },
+  {
+    "id": 31,
+    "name": "Elemental"
+  },
+  {
+    "id": 32,
+    "name": "Enhancement"
+  },
+  {
+    "id": 33,
+    "name": "Restoration (Shaman)"
+  },
+  {
+    "id": 34,
+    "name": "Affliction"
+  },
+  {
+    "id": 35,
+    "name": "Demonology"
+  },
+  {
+    "id": 36,
+    "name": "Destruction"
+  },
+  {
+    "id": 37,
+    "name": "Arms"
+  },
+  {
+    "id": 38,
+    "name": "Fury"
+  },
+  {
+    "id": 39,
+    "name": "Protection (Warrior)"
+  }
+]

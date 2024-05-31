@@ -14,10 +14,10 @@
 }
 else
 {
-    <MudItem xs="12"></MudItem>
+    <MudItem xs="12"><MudPaper Class="flex-grow-1" /></MudItem>
     <MudItem xs="4"></MudItem>
     <MudItem xs="4">
-        <MudPaper Class="align-content-space-around pa-3" MinWidth="40%">
+        <MudPaper Class="align-content-space-around pa-3 flex-grow-0" MinWidth="40%">
             <MudStack Spacing="3">
                 <MudSelect T=string @bind-Value=@Code Label="Available Lists" AnchorOrigin="Origin.BottomCenter">
                     @foreach (var list in AvailableLists)
@@ -37,7 +37,7 @@ else
         </MudPaper>
     </MudItem>
     <MudItem xs="4"></MudItem>
-    <MudItem xs="12"></MudItem>
+    <MudItem xs="12"><MudPaper Class="flex-grow-1" /></MudItem>
 }
 
 @code

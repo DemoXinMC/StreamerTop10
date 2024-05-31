@@ -1,6 +1,22 @@
 ﻿[
   {
-    "name": "New Debug List",
-    "code": "newdebug"
+    "name": "Specializations",
+    "code": "specializations"
+  },
+  {
+    "name": "Dungeons That Haven't Been M+",
+    "code": "nonmplusdungeons"
+  },
+  {
+    "name": "Raid Bosses (Dragonflight)",
+    "code": "raidbossesdf"
+  },
+  {
+    "name": "Raid Bosses (Shadowlands & Dragonflight)",
+    "code": "raidbossesdfsl"
+  },
+  {
+    "name": "Raid Bosses (BfA to DF)",
+    "code": "raidbossesdfslbfa"
   }
 ]

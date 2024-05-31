@@ -1,4 +1,6 @@
-﻿@page "/host/{ListCode}"
+﻿@page "/host/"
+@page "/host/{ListCode}"
+@page "/host/{ListCode}/{MaxRanks:int}"
 @using Top10Streams.Data.TopList
 @inject HttpClient HttpClient
 @inject Data.ListService ListService
@@ -27,51 +29,65 @@ else
 {
     <MudItem xs="7" Class="pa-2">
         <MudPaper Width="100%" Height="100%" Outlined Class="pa-2">
-            <MudStack>
-                <MudPaper Width="100%" Elevation="0">
-                    <MudStack Row Justify="@Justify.SpaceBetween">
-                        @if(IsEditingTitle)
+            <MudStack Row>
+                <MudPaper Width="90%">
+                    <MudStack>
+                        <MudPaper Width="100%" Elevation="0">
+                            <MudStack Row Justify="@Justify.SpaceBetween">
+                                @if(IsEditingTitle)
+                                {
+                                    <MudTextField @bind-Value=CustomPanelName ShrinkLabel Label="Change Stream Title" />
+                                }
+                                else
+                                {
+                                    @if (CustomPanelName != null)
+                                    {
+                                        <MudText Typo="@Typo.h3">@CustomPanelName</MudText>
+                                    }
+                                    else
+                                    {
+                                        <MudText Typo="@Typo.h3">@LoadedList.Name</MudText>
+                                    }
+                                }
+                                <MudToggleIconButton @bind-Toggled=IsEditingTitle Icon="@Icons.Material.Filled.Edit" Color="@Color.Primary" ToggledIcon="@Icons.Material.Filled.Check" ToggledColor="@Color.Success" />
+                            </MudStack>
+                        </MudPaper>
+                        <MudSpacer />
+                        <MudPaper Class="px-8 py-1" Elevation="0">
+                        @if(BuildLink != null)
                         {
-                            <MudTextField @bind-Value=CustomPanelName ShrinkLabel Label="Change Stream Title" />
+                            <MudStack Row AlignItems="@AlignItems.Center">
+                                <MudLink Href="@BuildLink" Target="_blank">List Code: @ListCode</MudLink>
+                                <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Filled.CopyAll" OnClick="(() => { CopyLinkToClipboard(); })" />
+                            </MudStack>
                         }
-                        else
-                        {
-                            @if (CustomPanelName != null)
-                            {
-                                <MudText Typo="@Typo.h3">@CustomPanelName</MudText>
-                            }
-                            else
-                            {
-                                <MudText Typo="@Typo.h3">@LoadedList.Name</MudText>
-                            }
-                        }
-                        <MudToggleIconButton @bind-Toggled=IsEditingTitle Icon="@Icons.Material.Filled.Edit" Color="@Color.Primary" ToggledIcon="@Icons.Material.Filled.Check" ToggledColor="@Color.Success" />
+                        </MudPaper>
                     </MudStack>
                 </MudPaper>
-                <MudSpacer />
-                <MudPaper Class="px-8 py-1" Elevation="0">
-                @if(BuildLink != null)
-                {
-                    <MudStack Row AlignItems="@AlignItems.Center">
-                        <MudLink Href="@BuildLink">List Code: @ListCode</MudLink>
-                        <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Filled.CopyAll" OnClick="(() => { CopyLinkToClipboard(); })" />
+                <MudPaper Width="10%">
+                    <MudStack Justify="@Justify.SpaceAround">
+                        <MudText Typo="@Typo.h5">Top</MudText>
+                        <MudStack Row Justify="@Justify.Center">
+                            <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.IndeterminateCheckBox" Color="@Color.Error" OnClick="(() => MaxRanks--)" Disabled="@(MaxRanks <= 1)"/>
+                            <MudText Typo="@Typo.h6">@(MaxRanks == null ? "?" : MaxRanks.Value)</MudText>
+                            <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.AddBox" Color="@Color.Success" OnClick="(() => MaxRanks++)" />
+                        </MudStack>
                     </MudStack>
-                }
-                </MudPaper>
+                 </MudPaper>
             </MudStack>
         </MudPaper>
     </MudItem>
     <MudItem xs="5" Class="pa-2">
         <MudPaper Width="100%" Height="100%" Outlined Class="pa-2">
-            <MudSpacer />
             <MudStack Row Justify="@Justify.SpaceBetween">
                 <MudTextField @bind-Value=@UserInput Label="Add A User" ShrinkLabel FullWidth Variant="@Variant.Outlined" />
                 <MudIconButton Icon="@Icons.Material.Filled.Add" OnClick="@AddUser" />
             </MudStack>
         </MudPaper>
     </MudItem>
-    <MudItem xs="2">
-        <MudPaper Width="100%">
+    <MudItem xs="2" Class="pa-2">
+        <MudPaper Width="100%" Outlined Class="pa-2">
+            <MudText Typo="@Typo.h6">Standings</MudText>
             @if(CurrentPoints != null && CurrentPoints.Count > 0)
             {
                 var i = 0;
@@ -175,12 +191,22 @@ else
     [Parameter]
     public string? ListCode { get; set; }
 
-    public string? BuildLink { get => HttpClient.BaseAddress == null ? null : $"{HttpClient.BaseAddress.ToString()}build/{ListCode}"; }
+    [Parameter]
+    public int? MaxRanks { get; set; }
+
+    public string? BuildLink
+    {
+        get
+        {
+            if(MaxRanks == 10)
+                return (HttpClient.BaseAddress == null ? null : $"{HttpClient.BaseAddress.ToString()}build/{ListCode}");
+            else
+                return (HttpClient.BaseAddress == null ? null : $"{HttpClient.BaseAddress.ToString()}build/{ListCode}/{MaxRanks}");
+        }
+    }
 
     public string? CustomPanelName { get; set; }
     public bool IsEditingTitle { get; set; } = false;
-
-    const int MaxRanks = 10;
 
     protected TopList? LoadedList { get; set; }
     protected List<UserRanking>? Rankings { get; set; }
@@ -203,6 +229,13 @@ else
         CurrentPoints = [];
         RevealedRanks = [];
         LoadedList = await ListService.GetTopList(ListCode);
+    }
+
+    public async override Task SetParametersAsync(ParameterView parameters)
+    {
+        await base.SetParametersAsync(parameters);
+        MaxRanks = MaxRanks ?? 10;
+        StateHasChanged();
     }
 
     protected void AddUser()
@@ -273,14 +306,19 @@ else
                 if (!calculatedPoints.ContainsKey(entry))
                     calculatedPoints.Add(entry, 0);
 
-                calculatedPoints[entry] = calculatedPoints[entry] + (MaxRanks - i);
+                calculatedPoints[entry] = calculatedPoints[entry] + (MaxRanks.Value - i);
             }
         }
 
         CurrentPoints.Clear();
         var sorted = calculatedPoints.OrderBy(x => x.Value);
-        foreach (var item in sorted)
+        foreach (var item in sorted.Reverse())
+        {
             CurrentPoints.Add(item.Key, item.Value);
+            if (CurrentPoints.Count >= MaxRanks)
+                break;
+        }
+        
     }
 
     protected void RecalculateBestStandings()
