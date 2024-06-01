@@ -59,12 +59,22 @@ else
                             <MudStack Row AlignItems="@AlignItems.Center">
                                 <MudLink Href="@BuildLink" Target="_blank">List Code: @ListCode</MudLink>
                                 <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Filled.CopyAll" OnClick="(() => { CopyLinkToClipboard(); })" />
+                                <MudTooltip Class="align-center" Placement="@Placement.Right">
+                                    <ChildContent>
+                                        <MudIcon Size="@Size.Small" Icon="@Icons.Material.Filled.Help" />
+                                    </ChildContent>
+                                    <TooltipContent>
+                                        <MudText Typo="Typo.body2" Align="@Align.Left">Send this link to someone and let them choose their Top 10 using the selected List.</MudText>
+                                        <MudText Typo="Typo.body2" Align="@Align.Left">Once they've made their choices, they can send you a Top 10 Code back for you to add them here with the "Add User" area to the right.</MudText>
+                                        <MudText Typo="Typo.body2" Align="@Align.Left">Use <MudIcon Size="@Size.Small" Icon="@Icons.Material.Filled.CopyAll" /> to copy the link directly to your clipboard.</MudText>
+                                    </TooltipContent>
+                                </MudTooltip>
                             </MudStack>
                         }
                         </MudPaper>
                     </MudStack>
                 </MudPaper>
-                <MudPaper Width="10%">
+                <MudPaper Width="10%" Class="align-center">
                     <MudStack Justify="@Justify.SpaceAround">
                         <MudText Typo="@Typo.h5">Top</MudText>
                         <MudStack Row Justify="@Justify.Center">
@@ -78,16 +88,34 @@ else
         </MudPaper>
     </MudItem>
     <MudItem xs="5" Class="pa-2">
-        <MudPaper Width="100%" Height="100%" Outlined Class="pa-2">
-            <MudStack Row Justify="@Justify.SpaceBetween">
+        <MudPaper Width="100%" Height="100%" Outlined Class="pa-2 align-center">
+            <MudStack Row Justify="@Justify.SpaceBetween" AlignItems="@AlignItems.Center">
+                 <MudTooltip>
+                     <ChildContent>
+                         <MudIcon Icon="@Icons.Material.Filled.Help" />
+                     </ChildContent>
+                     <TooltipContent>
+                         <MudText Typo="Typo.body2">Paste a Top 10 Code and press <MudIcon Icon="@Icons.Material.Filled.Add" /> to add that User's name and list to the rankings below.</MudText>
+                     </TooltipContent>
+                 </MudTooltip>
                 <MudTextField @bind-Value=@UserInput Label="Add A User" ShrinkLabel FullWidth Variant="@Variant.Outlined" />
                 <MudIconButton Icon="@Icons.Material.Filled.Add" OnClick="@AddUser" />
             </MudStack>
         </MudPaper>
     </MudItem>
     <MudItem xs="2" Class="pa-2">
-        <MudPaper Width="100%" Outlined Class="pa-2">
-            <MudText Typo="@Typo.h6">Standings</MudText>
+        <MudPaper Width="100%" Outlined Class="pa-2 align-center">
+            <MudTooltip Placement="@Placement.Right">
+                <ChildContent>
+                    <MudStack Row Justify="@Justify.FlexStart" AlignItems="@AlignItems.Center">
+                        <MudText Typo="@Typo.h6">Standings</MudText>
+                        <MudIcon Size="@Size.Small" Icon="@Icons.Material.Filled.Help" />
+                    </MudStack>
+                </ChildContent>
+                <TooltipContent>
+                    <MudText Typo="Typo.body2">Current Point Leaders based on the <b>revealed</b> rankings to the right.</MudText>
+                </TooltipContent>
+            </MudTooltip>
             @if(CurrentPoints != null && CurrentPoints.Count > 0)
             {
                 var i = 0;
@@ -107,7 +135,16 @@ else
                 <thead>
                     <tr>
                         <th width="10%"><MudText Typo="@Typo.h5">Rank</MudText></th>
-                        <th width="5%"><MudIcon Icon="@Icons.Material.Filled.RemoveRedEye" Size="@Size.Small" /></th>
+                        <th width="5%">
+                            <MudTooltip>
+                                <ChildContent>
+                                    <MudIcon Icon="@Icons.Material.Filled.RemoveRedEye" Size="@Size.Small" />
+                                </ChildContent>
+                                <TooltipContent>
+                                     <MudText Typo="Typo.body2">Click <MudIcon Icon="@Icons.Material.Filled.RemoveRedEye" Size="@Size.Small" /> on a row to reveal the choices for that rank.</MudText>
+                                </TooltipContent>
+                            </MudTooltip>
+                        </th>
                         @if(Rankings != null && Rankings.Count > 0)
                         {
                             @foreach (var user in Rankings)
@@ -131,11 +168,29 @@ else
                         <td><MudText Typo="@Typo.h5">@(ranking + 1)</MudText></td>
                         @if(RevealedRanks != null && RevealedRanks.Contains(ranking))
                         {
-                            <td><MudIconButton Icon="@Icons.Material.Filled.Block" Color="@Color.Error" Size="@Size.Small" OnClick="(() => { Hide(ranking); })" /></td>
+                            <td>
+                                <MudTooltip>
+                                    <ChildContent>
+                                        <MudIconButton Icon="@Icons.Material.Filled.Block" Color="@Color.Error" Size="@Size.Small" OnClick="(() => { Hide(ranking); })" />
+                                    </ChildContent>
+                                    <TooltipContent>
+                                        <MudText Typo="Typo.body2">Click to hide Rank @ranking</MudText>
+                                    </TooltipContent>
+                                </MudTooltip>
+                            </td>
                         }
                         else
                         {
-                            <td><MudIconButton Icon="@Icons.Material.Filled.RemoveRedEye" Size="@Size.Small" OnClick="(() => { Reveal(ranking); })" /></td>
+                            <td>
+                                <MudTooltip>
+                                    <ChildContent>
+                                        <MudIconButton Icon="@Icons.Material.Filled.RemoveRedEye" Size="@Size.Small" OnClick="(() => { Reveal(ranking); })" />
+                                    </ChildContent>
+                                    <TooltipContent>
+                                        <MudText Typo="Typo.body2">Click to hide Rank @ranking</MudText>
+                                    </TooltipContent>
+                                </MudTooltip>
+                            </td>
                         }
                         @if (Rankings != null && Rankings.Count > 0)
                         {
@@ -149,11 +204,19 @@ else
                                         <td>
                                         @if (BestRanking != null && BestRanking.ContainsKey(userRank) && BestRanking[userRank] == ranking)
                                         {
-                                            <MudBadge Icon="@Icons.Material.Filled.Stars" Color="@Color.Success" Origin="@Origin.TopLeft">
-                                                <MudPaper Elevation="0">
-                                                    <MudText Typo="@Typo.body1">@userRank.Name</MudText>
-                                                </MudPaper>
-                                            </MudBadge>
+                                            <MudTooltip>
+                                                <ChildContent>
+                                                    <MudBadge Icon="@Icons.Material.Filled.Stars" Color="@Color.Success" Origin="@Origin.TopLeft">
+                                                        <MudPaper Elevation="0">
+                                                            <MudText Typo="@Typo.body1">@userRank.Name</MudText>
+                                                        </MudPaper>
+                                                    </MudBadge>
+                                                </ChildContent>
+                                                <TooltipContent>
+                                                    <MudText Typo="@Typo.body2">Highest Appearance</MudText>
+                                                </TooltipContent>
+                                            </MudTooltip>
+                                            
                                         }
                                         else
                                         {

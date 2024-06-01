@@ -35,8 +35,20 @@ else
                     <MudTextField @bind-Value=@Username Label="Name" ShrinkLabel Variant="Variant.Outlined" RequiredError="Required"></MudTextField>
                 </MudPaper>
                 <MudPaper Elevation="0" Width="40%">
-                    <MudStack Row Spacing="0">
-                         <MudTextField @bind-Value=@PackedValue Label="Encoded List" ReadOnly ShrinkLabel Variant="Variant.Outlined" Adornment="@Adornment.Start" AdornmentIcon="@Icons.Material.Filled.CopyAll" OnAdornmentClick="(() => { CopyPackedToClipboard(); })" AdornmentColor="@Color.Primary" />
+                    <MudStack Row Spacing="0" AlignItems="@AlignItems.Center">
+                         <MudTooltip>
+                             <ChildContent>
+                                 <MudPaper Class="pa-2" Elevation="0">
+                                     <MudIcon Icon="@Icons.Material.Filled.Help" />
+                                 </MudPaper>
+                             </ChildContent>
+                             <TooltipContent>
+                                 <MudText Typo="Typo.body2" Align="@Align.Left">Once you're happy with your rankings:</MudText>
+                                 <MudText Typo="Typo.body2" Align="@Align.Left">- Press <MudIcon Icon="@Icons.Material.Filled.CopyAll" Size="@Size.Small" /> to generate your Top 10 Code and copy it to your clipboard.</MudText>
+                                 <MudText Typo="Typo.body2" Align="@Align.Left">- Or, press <MudIcon Icon="@Icons.Material.Filled.Refresh" Size="@Size.Small" /> to generate your Top 10 Code without copying it automatically.</MudText>
+                             </TooltipContent>
+                         </MudTooltip>
+                        <MudTextField @bind-Value=@PackedValue Label="Top 10 Code" ReadOnly ShrinkLabel Variant="Variant.Outlined" Adornment="@Adornment.Start" AdornmentIcon="@Icons.Material.Filled.CopyAll" OnAdornmentClick="(() => { CopyPackedToClipboard(); })" AdornmentColor="@Color.Primary" />
                         <MudIconButton Icon="@Icons.Material.Filled.Refresh" Color="@Color.Primary" OnClick="() => UpdatePackedValue()" />
                     </MudStack>
                 </MudPaper>
